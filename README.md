@@ -36,3 +36,25 @@ Este é um projeto escolar desenvolvido por mim e pelo meu irmão. O **GestHub**
 
 ##  Sobre o Projeto
 Nosso objetivo com este projeto foi aplicar o que aprendemos na escola para construir algo prático e útil. O **GestHub** simplifica tarefas e ajuda você a gerenciar suas atividades diárias sem dor de cabeça.
+
+##  Como Usar
+
+Open the terminal in your project directory and execute these commands:
+
+1. **Ative o venv**:
+   ```bash
+   .venv\Scripts\activate.bat **windows
+   .venv\bin\activate         **linux
+   
+2. **Instale as dependencias** (se você tem o `requirements.txt`):
+   ```bash
+   pip install -r requirements.txt
+
+3. **Inicialize o Banco de Dados**:
+   ```bash
+   python scripts\init_db.py
+
+4. **Execute o projeto e abra o site**:
+   ```bash
+   uvicorn backend.app.main:app --reload
+   INFO: Uvicorn running on http://127.0.0.1:8000
