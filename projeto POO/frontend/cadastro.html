@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cadastro | CondoFlow</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <section class="auth-screen register-screen">
+      <div class="auth-panel register-panel">
+        <div class="brand-lockup">
+          <span class="brand-mark">CF</span>
+          <div>
+            <strong>CondoFlow</strong>
+            <span>Crie sua conta</span>
+          </div>
+        </div>
+
+        <form id="registerForm" class="login-form">
+          <label>
+            Nome Completo
+            <input name="nome" type="text" autocomplete="name" minlength="2" maxlength="140" required />
+          </label>
+          <label>
+            E-mail
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            Senha
+            <input name="password" type="password" autocomplete="new-password" minlength="8" required />
+          </label>
+          <label>
+            Confirmação de Senha
+            <input name="confirm_password" type="password" autocomplete="new-password" minlength="8" required />
+          </label>
+          <label>
+            Perfil
+            <select name="role" required>
+              <option value="morador">Morador (Viewer)</option>
+              <option value="proprietario">Proprietário (Admin)</option>
+            </select>
+          </label>
+          <button class="primary-button" type="submit">Criar conta</button>
+        </form>
+
+        <div class="auth-footer">
+          <a class="signup-link" href="/">Já tenho uma conta</a>
+        </div>
+      </div>
+    </section>
+
+    <script type="module" src="/static/cadastro.js"></script>
+  </body>
+</html>
+

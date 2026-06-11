@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CondoFlow</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <section id="authScreen" class="auth-screen">
+      <div class="auth-panel">
+        <div class="brand-lockup">
+          <span class="brand-mark">CF</span>
+          <div>
+            <strong>CondoFlow</strong>
+            <span>Gestão de condomínios e aluguéis</span>
+          </div>
+        </div>
+        <form id="loginForm" class="login-form">
+          <label>
+            E-mail
+            <input id="email" type="email" autocomplete="username" value="proprietario@demo.com" required />
+          </label>
+          <label>
+            Senha
+            <input id="password" type="password" autocomplete="current-password" value="Senha@123" required />
+          </label>
+          <button class="primary-button" type="submit">Entrar</button>
+        </form>
+        <div class="demo-access">
+          <button type="button" data-demo="proprietario">Proprietário</button>
+          <button type="button" data-demo="morador">Morador</button>
+        </div>
+        <div class="auth-footer">
+          <a class="signup-link" href="/cadastro">Comece a gerenciar sua propriedade</a>
+        </div>
+      </div>
+    </section>
+
+    <div id="appShell" class="app-shell hidden">
+      <aside class="sidebar" aria-label="Navegação principal">
+        <div class="sidebar-brand">
+          <span class="brand-mark">CF</span>
+          <div>
+            <strong>CondoFlow</strong>
+            <span id="roleBadge">Perfil</span>
+          </div>
+        </div>
+        <nav id="nav" class="nav-list">
+          <button data-view="dashboard" class="active" title="Dashboard"><span>◫</span> Dashboard</button>
+          <button data-view="moradores" title="Moradores"><span>☷</span> Moradores</button>
+          <button data-view="avisos" title="Avisos"><span>◉</span> Avisos</button>
+          <button data-view="boletos" title="Boletos"><span>▤</span> Boletos</button>
+          <button data-view="alugueis" title="Aluguel"><span>◇</span> Aluguel</button>
+          <button data-view="contratos" title="Contratos"><span>▣</span> Contratos</button>
+          <button data-view="imoveis" title="Imóveis"><span>⌂</span> Imóveis</button>
+          <button data-view="condominios" title="Condomínios"><span>▦</span> Condomínios</button>
+          <button data-view="financeiro" title="Financeiro"><span>⌁</span> Financeiro</button>
+          <button data-view="ocorrencias" title="Ocorrências"><span>!</span> Ocorrências</button>
+          <button data-view="documentos" title="Documentos"><span>▱</span> Documentos</button>
+          <button data-view="relatorios" title="Relatórios"><span>⇩</span> Relatórios</button>
+        </nav>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <span id="kicker" class="kicker">Sistema imobiliário</span>
+            <h1 id="pageTitle">Dashboard</h1>
+          </div>
+          <div class="topbar-actions">
+            <div class="search-box">
+              <span>⌕</span>
+              <input id="globalSearch" type="search" placeholder="Buscar" />
+            </div>
+            <button id="themeToggle" class="icon-button" type="button" title="Alternar tema">◐</button>
+            <button id="logoutButton" class="icon-button" type="button" title="Sair">↳</button>
+          </div>
+        </header>
+
+        <section id="dashboardView" class="view active-view">
+          <div id="metricGrid" class="metric-grid"></div>
+          <div class="analytics-grid">
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Fluxo financeiro</h2>
+                <span>Mensal</span>
+              </div>
+              <canvas id="financeChart" width="720" height="280"></canvas>
+            </section>
+            <section class="panel">
+              <div class="panel-head">
+                <h2>Status dos boletos</h2>
+                <span>Atual</span>
+              </div>
+              <canvas id="statusChart" width="360" height="280"></canvas>
+            </section>
+          </div>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Avisos recentes</h2>
+              <span id="noticeCount">0</span>
+            </div>
+            <div id="recentNotices" class="notice-list"></div>
+          </section>
+        </section>
+
+        <section id="moduleView" class="view">
+          <div class="module-toolbar">
+            <div>
+              <h2 id="moduleTitle">Módulo</h2>
+              <p id="moduleSubtitle"></p>
+            </div>
+            <div class="module-actions">
+              <select id="statusFilter" aria-label="Status"></select>
+              <button id="exportCsv" class="secondary-button" type="button">CSV</button>
+              <button id="newRecord" class="primary-button" type="button">Novo</button>
+            </div>
+          </div>
+          <div class="table-shell">
+            <table>
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+          <div id="emptyState" class="empty-state hidden">Nenhum registro encontrado.</div>
+        </section>
+
+        <section id="reportsView" class="view">
+          <div class="module-toolbar">
+            <div>
+              <h2>Relatórios</h2>
+              <p>Exportações operacionais em PDF, Excel e CSV.</p>
+            </div>
+          </div>
+          <div id="reportGrid" class="report-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <aside id="drawer" class="drawer" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <span class="kicker">Registro</span>
+          <h2 id="drawerTitle">Novo</h2>
+        </div>
+        <button id="closeDrawer" class="icon-button" type="button" title="Fechar">×</button>
+      </div>
+      <form id="recordForm" class="record-form"></form>
+    </aside>
+
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>
