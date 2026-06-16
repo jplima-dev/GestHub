@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import logging
 
-
-from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,7 +30,10 @@ from backend.app.routers import (
 )
 from backend.app.seed import seed_database
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s"
+)
 logger = logging.getLogger("condoflow")
 
 app = FastAPI(
@@ -44,6 +45,7 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.allowed_origins),
@@ -61,8 +63,6 @@ CSRF_EXEMPT_PREFIXES = (
     "/openapi.json",
 )
 
-# app.mount("/", StaticFiles(directory="frontend", html=True), name="static")
-
 
 @app.middleware("http")
 async def security_middleware(request: Request, call_next):
@@ -72,51 +72,104 @@ async def security_middleware(request: Request, call_next):
         and not request.url.path.startswith(CSRF_EXEMPT_PREFIXES)
     ):
         token = request.headers.get("x-csrf-token")
+
         if not verify_csrf_token(token):
-            return JSONResponse(status_code=403, content={"detail": "Token CSRF ausente ou inválido."})
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "Token CSRF ausente ou inválido."},
+            )
 
     response = await call_next(request)
+
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    response.headers["Permissions-Policy"] = (
+        "geolocation=(), microphone=(), camera=()"
+    )
+
     response.headers[
         "Content-Security-Policy"
-    ] = "default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self'"
+    ] = (
+        "default-src 'self'; "
+        "img-src 'self' data:; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "connect-src 'self'"
+    )
+
     return response
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    return JSONResponse(status_code=422, content={"detail": "Dados inválidos.", "errors": exc.errors()})
+async def validation_exception_handler(
+    request: Request,
+    exc: RequestValidationError,
+):
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": "Dados inválidos.",
+            "errors": exc.errors(),
+        },
+    )
 
 
 @app.exception_handler(IntegrityError)
-async def integrity_exception_handler(request: Request, exc: IntegrityError):
+async def integrity_exception_handler(
+    request: Request,
+    exc: IntegrityError,
+):
     logger.warning("Database integrity error: %s", exc)
-    return JSONResponse(status_code=409, content={"detail": "Registro duplicado ou relacionamento inválido."})
+
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "Registro duplicado ou relacionamento inválido."
+        },
+    )
 
 
 @app.exception_handler(SQLAlchemyError)
-async def database_exception_handler(request: Request, exc: SQLAlchemyError):
+async def database_exception_handler(
+    request: Request,
+    exc: SQLAlchemyError,
+):
     logger.exception("Database error")
-    return JSONResponse(status_code=500, content={"detail": "Erro interno no banco de dados."})
+
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Erro interno no banco de dados."},
+    )
 
 
 @app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail}, headers=exc.headers)
+async def http_exception_handler(
+    request: Request,
+    exc: HTTPException,
+):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+        headers=exc.headers,
+    )
 
 
 @app.on_event("startup")
 def on_startup() -> None:
     init_db()
+
     db = SessionLocal()
+
     try:
         seed_database(db)
     finally:
         db.close()
 
+
+# ==========================
+# ROTAS DA API
+# ==========================
 
 app.include_router(auth.router, prefix=settings.api_prefix)
 app.include_router(dashboard.router, prefix=settings.api_prefix)
@@ -132,22 +185,43 @@ app.include_router(financeiro.router, prefix=settings.api_prefix)
 app.include_router(ocorrencias.router, prefix=settings.api_prefix)
 app.include_router(documentos.router, prefix=settings.api_prefix)
 app.include_router(relatorios.router, prefix=settings.api_prefix)
-app.include_router(proprietarios.router,prefix="/api")
-app.include_router(moradores.router,prefix="/api")
+
+# ==========================
+# ARQUIVOS FRONTEND
+# ==========================
 
 if settings.frontend_dir.exists():
-    app.mount("/static", StaticFiles(directory=settings.frontend_dir), name="static")
+    app.mount(
+        "/static",
+        StaticFiles(directory=settings.frontend_dir),
+        name="static",
+    )
 
 
 @app.get("/")
 def index():
     index_path = settings.frontend_dir / "index.html"
+
     if not index_path.exists():
         return {"message": "Frontend ainda não foi criado."}
+
     return FileResponse(index_path)
+
+
+@app.get("/cadastro")
+def cadastro():
+    cadastro_path = settings.frontend_dir / "cadastro.html"
+
+    if not cadastro_path.exists():
+        return {"message": "Página de cadastro não encontrada."}
+
+    return FileResponse(cadastro_path)
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "app": settings.app_name, "version": settings.app_version}
-
+    return {
+        "status": "ok",
+        "app": settings.app_name,
+        "version": settings.app_version,
+    }
