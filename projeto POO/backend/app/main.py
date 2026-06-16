@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import logging
 
+
+from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,7 +26,6 @@ from backend.app.routers import (
     financeiro,
     imoveis,
     moradores,
-    onboarding,
     ocorrencias,
     proprietarios,
     relatorios,
@@ -59,6 +60,8 @@ CSRF_EXEMPT_PREFIXES = (
     "/redoc",
     "/openapi.json",
 )
+
+# app.mount("/", StaticFiles(directory="frontend", html=True), name="static")
 
 
 @app.middleware("http")
@@ -116,7 +119,6 @@ def on_startup() -> None:
 
 
 app.include_router(auth.router, prefix=settings.api_prefix)
-app.include_router(onboarding.router, prefix=settings.api_prefix)
 app.include_router(dashboard.router, prefix=settings.api_prefix)
 app.include_router(proprietarios.router, prefix=settings.api_prefix)
 app.include_router(moradores.router, prefix=settings.api_prefix)
@@ -130,13 +132,11 @@ app.include_router(financeiro.router, prefix=settings.api_prefix)
 app.include_router(ocorrencias.router, prefix=settings.api_prefix)
 app.include_router(documentos.router, prefix=settings.api_prefix)
 app.include_router(relatorios.router, prefix=settings.api_prefix)
+app.include_router(proprietarios.router,prefix="/api")
+app.include_router(moradores.router,prefix="/api")
 
 if settings.frontend_dir.exists():
     app.mount("/static", StaticFiles(directory=settings.frontend_dir), name="static")
-
-avatar_dir = settings.upload_dir / "avatars"
-avatar_dir.mkdir(parents=True, exist_ok=True)
-app.mount("/uploads/avatars", StaticFiles(directory=avatar_dir), name="avatars")
 
 
 @app.get("/")
@@ -147,14 +147,7 @@ def index():
     return FileResponse(index_path)
 
 
-@app.get("/cadastro")
-def cadastro():
-    cadastro_path = settings.frontend_dir / "cadastro.html"
-    if not cadastro_path.exists():
-        return {"message": "Tela de cadastro ainda não foi criada."}
-    return FileResponse(cadastro_path)
-
-
 @app.get("/health")
 def health():
     return {"status": "ok", "app": settings.app_name, "version": settings.app_version}
+

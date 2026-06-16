@@ -23,13 +23,11 @@ class User(Base, TimestampMixin):
     password_hash = Column(String(255), nullable=False)
     role = Column(String(30), nullable=False, index=True)
     ativo = Column(Boolean, default=True, nullable=False)
-    avatar_path = Column(String(255))
     ultimo_login = Column(DateTime(timezone=True))
 
     proprietario = relationship("Proprietario", back_populates="user", uselist=False, cascade="all, delete-orphan")
     morador = relationship("Morador", back_populates="user", uselist=False, cascade="all, delete-orphan")
     avisos_autoria = relationship("Aviso", back_populates="autor")
-    propriedades = relationship("PropriedadeUsuario", back_populates="user", cascade="all, delete-orphan")
 
 
 class Proprietario(Base, TimestampMixin):
@@ -145,21 +143,6 @@ class Imovel(Base, TimestampMixin):
     boletos = relationship("Boleto", back_populates="imovel")
     ocorrencias = relationship("Ocorrencia", back_populates="imovel")
     documentos = relationship("Documento", back_populates="imovel")
-    usuarios = relationship("PropriedadeUsuario", back_populates="imovel", cascade="all, delete-orphan")
-
-
-class PropriedadeUsuario(Base, TimestampMixin):
-    __tablename__ = "propriedades_usuarios"
-    __table_args__ = (UniqueConstraint("user_id", "imovel_id", name="uq_usuario_imovel"),)
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
-    imovel_id = Column(Integer, ForeignKey("imoveis.id"), nullable=False)
-    role = Column(String(30), default="viewer", nullable=False)
-    ativo = Column(Boolean, default=True, nullable=False)
-
-    user = relationship("User", back_populates="propriedades")
-    imovel = relationship("Imovel", back_populates="usuarios")
 
 
 class Contrato(Base, TimestampMixin):
@@ -229,7 +212,6 @@ class Aviso(Base, TimestampMixin):
 
     id = Column(Integer, primary_key=True, index=True)
     autor_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
-    imovel_id = Column(Integer, ForeignKey("imoveis.id"))
     titulo = Column(String(180), nullable=False)
     mensagem = Column(Text, nullable=False)
     categoria = Column(String(60), default="geral", nullable=False)
@@ -240,7 +222,6 @@ class Aviso(Base, TimestampMixin):
     expira_em = Column(DateTime(timezone=True))
 
     autor = relationship("User", back_populates="avisos_autoria")
-    imovel = relationship("Imovel")
     leituras = relationship("AvisoLeitura", back_populates="aviso", cascade="all, delete-orphan")
 
 
@@ -324,3 +305,4 @@ class AuditLog(Base):
     criado_em = Column(DateTime(timezone=True), default=now_utc, nullable=False)
 
     user = relationship("User")
+

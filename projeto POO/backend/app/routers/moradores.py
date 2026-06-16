@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 from backend.app import models, schemas
 from backend.app.core.audit import write_audit
 from backend.app.core.database import get_db
-from backend.app.core.property_access import ensure_property_access
 from backend.app.core.security import hash_password
 from backend.app.dependencies import ROLE_MORADOR, ROLE_PROPRIETARIO, current_morador, get_current_user, require_roles
 from backend.app.routers.common import apply_filters, apply_order, apply_search, get_or_404, page_response, set_fields
@@ -19,7 +18,6 @@ def list_moradores(
     search: str | None = None,
     status_filter: str | None = Query(None, alias="status"),
     unidade_id: int | None = None,
-    property_id: int | None = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     order_by: str = "id",
@@ -28,9 +26,6 @@ def list_moradores(
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Morador)
-    if property_id is not None:
-        ensure_property_access(db, current_user, property_id)
-        query = query.join(models.Contrato).filter(models.Contrato.imovel_id == property_id).distinct()
     if current_user.role == ROLE_MORADOR:
         morador = current_morador(db, current_user)
         query = query.filter(models.Morador.id == morador.id)
@@ -108,3 +103,67 @@ def delete_morador(
     db.commit()
     write_audit(db, current_user, "excluir", "moradores", item_id, request=request)
     return None
+
+@router.post("/cadastro-publico")
+def cadastro_publico(
+    payload: schemas.MoradorCreate,
+    db: Session = Depends(get_db),
+):
+    email = payload.email.lower()
+
+    usuario_existente = (
+        db.query(models.User)
+        .filter(models.User.email == email)
+        .first()
+    )
+
+    if usuario_existente:
+        raise HTTPException(
+            status_code=400,
+            detail="E-mail já cadastrado"
+        )
+
+    cpf_existente = (
+        db.query(models.Morador)
+        .filter(models.Morador.cpf == payload.cpf)
+        .first()
+    )
+
+    if cpf_existente:
+        raise HTTPException(
+            status_code=400,
+            detail="CPF já cadastrado"
+        )
+
+    senha = payload.user.password
+
+    user = models.User(
+        nome=payload.nome,
+        email=email,
+        role="morador",
+        ativo=True,
+        password_hash=hash_password(senha),
+    )
+
+    db.add(user)
+    db.flush()
+
+    morador = models.Morador(
+        user_id=user.id,
+        unidade_id=payload.unidade_id,
+        nome=payload.nome,
+        email=email,
+        cpf=payload.cpf,
+        telefone=payload.telefone,
+        data_nascimento=payload.data_nascimento,
+        ocupacao=payload.ocupacao,
+        observacoes=payload.observacoes,
+    )
+
+    db.add(morador)
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Cadastro realizado com sucesso"
+    }

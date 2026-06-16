@@ -1,32 +1,28 @@
 :root {
-  color-scheme: dark;
-  --primary: #10B981;
-  --primary-strong: #059669;
-  --primary-soft: rgba(16, 185, 129, 0.16);
-  --bg: #101418;
-  --surface: #171d21;
-  --surface-soft: #1f2927;
-  --text: #eef7f3;
-  --muted: #a9b6b1;
-  --line: #2b3834;
-  --danger: #dc2626;
-  --warning: #d97706;
-  --info: #2563eb;
-  --shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
-}
-
-[data-theme="light"] {
   color-scheme: light;
-  --primary: #10B981;
+  --primary: #10b981;
   --primary-strong: #059669;
-  --primary-soft: rgba(16, 185, 129, 0.14);
   --bg: #f6f8fb;
   --surface: #ffffff;
   --surface-soft: #eef4f1;
   --text: #16211d;
   --muted: #66746f;
   --line: #dce5e1;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --info: #2563eb;
   --shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #101418;
+  --surface: #171d21;
+  --surface-soft: #1f2927;
+  --text: #eef7f3;
+  --muted: #a9b6b1;
+  --line: #2b3834;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
 }
 
 * {
@@ -40,6 +36,16 @@ body {
   color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   letter-spacing: 0;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-strong);
+  text-decoration: underline;
 }
 
 button,
@@ -63,14 +69,14 @@ button {
   place-items: center;
   padding: 24px;
   background:
-    radial-gradient(circle at 30% 20%, rgba(16, 185, 129, 0.18), transparent 28%),
-    linear-gradient(135deg, #0f1417 0%, #151c20 52%, #101418 100%);
-}
-
-[data-theme="light"] .auth-screen {
-  background:
     radial-gradient(circle at 30% 20%, rgba(16, 185, 129, 0.16), transparent 28%),
     linear-gradient(135deg, #f8fbfa 0%, #eef5f2 48%, #f6f8fb 100%);
+}
+
+[data-theme="dark"] .auth-screen {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(16, 185, 129, 0.18), transparent 28%),
+    linear-gradient(135deg, #0f1417 0%, #151c20 52%, #101418 100%);
 }
 
 .auth-panel {
@@ -81,30 +87,6 @@ button {
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   box-shadow: var(--shadow);
   animation: rise 0.45s ease both;
-}
-
-.register-panel {
-  width: min(480px, 100%);
-}
-
-.auth-footer {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-  text-align: center;
-}
-
-.signup-link {
-  color: var(--primary);
-  font-size: 14px;
-  font-weight: 750;
-  text-decoration: none;
-}
-
-.signup-link:hover {
-  color: var(--primary-strong);
-  text-decoration: underline;
-  text-underline-offset: 4px;
 }
 
 .brand-lockup,
@@ -213,12 +195,6 @@ textarea:focus {
   border: 1px solid var(--line);
 }
 
-.secondary-button:hover,
-.demo-access button:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
 .demo-access {
   display: flex;
   gap: 10px;
@@ -274,12 +250,8 @@ textarea:focus {
 
 .nav-list button.active,
 .nav-list button:hover {
-  background: var(--primary-soft);
+  background: var(--surface-soft);
   color: var(--text);
-}
-
-.nav-list button.active {
-  box-shadow: inset 3px 0 0 var(--primary);
 }
 
 .workspace {
@@ -350,7 +322,7 @@ h2 {
 
 .icon-button:hover,
 .secondary-button:hover {
-  background: var(--primary-soft);
+  background: var(--surface-soft);
   transform: translateY(-1px);
 }
 
@@ -518,12 +490,6 @@ td {
   border-radius: 8px;
   background: var(--surface);
   color: var(--text);
-}
-
-.row-actions button:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: var(--primary-soft);
 }
 
 .empty-state {
@@ -717,3 +683,4 @@ td {
     width: 100vw;
   }
 }
+

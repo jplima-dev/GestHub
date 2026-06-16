@@ -11,6 +11,7 @@ from backend.app.dependencies import ROLE_PROPRIETARIO, require_roles
 from backend.app.routers.common import apply_filters, apply_order, apply_search, get_or_404, page_response, set_fields
 
 router = APIRouter(prefix="/proprietarios", tags=["Proprietários"])
+from fastapi import HTTPException
 
 
 @router.get("")
@@ -97,3 +98,61 @@ def delete_proprietario(
     write_audit(db, current_user, "excluir", "proprietarios", item_id, request=request)
     return None
 
+@router.post("/cadastro-publico")
+def cadastro_publico(
+    payload: schemas.ProprietarioCreate,
+    db: Session = Depends(get_db),
+):
+    email = payload.user.email.lower()
+
+    usuario_existente = (
+        db.query(models.User)
+        .filter(models.User.email == email)
+        .first()
+    )
+
+    if usuario_existente:
+        raise HTTPException(
+            status_code=400,
+            detail="E-mail já cadastrado"
+        )
+
+    cpf_existente = (
+        db.query(models.Proprietario)
+        .filter(models.Proprietario.cpf_cnpj == payload.cpf_cnpj)
+        .first()
+    )
+
+    if cpf_existente:
+        raise HTTPException(
+            status_code=400,
+            detail="CPF/CNPJ já cadastrado"
+        )
+
+    user = models.User(
+        nome=payload.user.nome,
+        email=email,
+        role="proprietario",
+        ativo=True,
+        password_hash=hash_password(payload.user.password),
+    )
+
+    db.add(user)
+    db.flush()
+
+    proprietario = models.Proprietario(
+        user_id=user.id,
+        nome=payload.nome,
+        cpf_cnpj=payload.cpf_cnpj,
+        telefone=payload.telefone,
+        endereco=payload.endereco,
+        observacoes=payload.observacoes,
+    )
+
+    db.add(proprietario)
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Cadastro realizado com sucesso"
+    }

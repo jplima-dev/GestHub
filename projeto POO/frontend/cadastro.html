@@ -3,56 +3,312 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Cadastro | CondoFlow</title>
-    <link rel="stylesheet" href="/static/styles.css" />
+    <title>GestHub | Cadastro</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .wide-auth {
+        width: min(920px, 100%);
+      }
+      .auth-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+        gap: 20px;
+      }
+      .panel-card {
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--surface) 94%, transparent);
+      }
+      .role-switch {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .role-switch button {
+        min-height: 44px;
+        font-weight: 700;
+      }
+      .role-switch button.active {
+        background: var(--primary);
+        color: #fff;
+        border-color: transparent;
+      }
+      .helper-list {
+        margin: 14px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+      .helper-list li {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface-soft);
+        color: var(--text);
+      }
+      .helper-list li span {
+        color: var(--primary);
+        font-weight: 800;
+      }
+      .form-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .full {
+        grid-column: 1 / -1;
+      }
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 16px 0 12px;
+      }
+      .mini-badge {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(16, 185, 129, 0.12);
+        color: var(--primary-strong);
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .field-note {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: -6px;
+      }
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 650;
+        margin-top: 18px;
+      }
+      .back-link:hover {
+        color: var(--text);
+      }
+      .hide {
+        display: none !important;
+      }
+      @media (max-width: 860px) {
+        .auth-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <section class="auth-screen register-screen">
-      <div class="auth-panel register-panel">
+    <section class="auth-screen">
+      <div class="auth-panel wide-auth">
         <div class="brand-lockup">
-          <span class="brand-mark">CF</span>
+          <span class="brand-mark">GH</span>
           <div>
-            <strong>CondoFlow</strong>
-            <span>Crie sua conta</span>
+            <strong>GestHub</strong>
+            <span>Cadastro de usuários e proprietários</span>
           </div>
         </div>
 
-        <form id="registerForm" class="login-form">
-          <label>
-            Nome Completo
-            <input name="nome" type="text" autocomplete="name" minlength="2" maxlength="140" required />
-          </label>
-          <label>
-            E-mail
-            <input name="email" type="email" autocomplete="email" required />
-          </label>
-          <label>
-            Senha
-            <input name="password" type="password" autocomplete="new-password" minlength="8" required />
-          </label>
-          <label>
-            Confirmação de Senha
-            <input name="confirm_password" type="password" autocomplete="new-password" minlength="8" required />
-          </label>
-          <label>
-            Perfil
-            <select name="role" required>
-              <option value="morador">Morador (Viewer)</option>
-              <option value="proprietario">Proprietário (Admin)</option>
-            </select>
-          </label>
-          <button class="primary-button" type="submit">Criar conta</button>
-        </form>
+        <div class="role-switch" role="tablist" aria-label="Tipo de cadastro">
+          <button id="btnMorador" class="secondary-button active" type="button" data-role="morador">Usuário / Morador</button>
+          <button id="btnProprietario" class="secondary-button" type="button" data-role="proprietario">Proprietário</button>
+        </div>
 
-        <div class="auth-footer">
-          <a class="signup-link" href="/">Já tenho uma conta</a>
+        <div class="auth-layout" style="margin-top: 18px;">
+          <div class="panel-card">
+            <div class="section-title">
+              <div>
+                <h2 id="formTitle">Cadastrar usuário</h2>
+                <p id="formSubtitle" class="field-note">Preencha os dados de acesso e o perfil principal.</p>
+              </div>
+              <span id="roleTag" class="mini-badge">Usuário</span>
+            </div>
+
+            <form id="cadastroForm" class="login-form" autocomplete="off">
+              <div class="form-grid-2">
+                <label>
+                  Nome completo
+                  <input name="nome" type="text" placeholder="Ex: Juan Lima" required />
+                </label>
+
+                <label>
+                  E-mail
+                  <input name="email" type="email" placeholder="voce@exemplo.com" required />
+                </label>
+
+                <label>
+                  Senha
+                  <input name="senha" type="password" placeholder="Crie uma senha" required />
+                </label>
+
+                <label>
+                  Confirmar senha
+                  <input name="confirmar_senha" type="password" placeholder="Repita a senha" required />
+                </label>
+
+                <label>
+                  Telefone
+                  <input name="telefone" type="text" placeholder="(85) 99999-9999" />
+                </label>
+
+                <label>
+                  CPF
+                  <input name="cpf" type="text" placeholder="000.000.000-00" />
+                </label>
+              </div>
+
+              <div class="section-title">
+                <h3 style="margin:0;">Dados do imóvel / vínculo</h3>
+                <span class="mini-badge">Opcional</span>
+              </div>
+
+              <div class="form-grid-2">
+                <label>
+                  Condomínio
+                  <input name="condominio" type="text" placeholder="Nome do condomínio" />
+                </label>
+
+                <label>
+                  Unidade
+                  <input name="unidade" type="text" placeholder="Ex: Bloco A - 302" />
+                </label>
+
+                <label>
+                  Bloco / Torre
+                  <input name="bloco" type="text" placeholder="Ex: Bloco B" />
+                </label>
+
+                <label>
+                  Status
+                  <select name="status">
+                    <option value="ativo">Ativo</option>
+                    <option value="inativo">Inativo</option>
+                  </select>
+                </label>
+
+                <label id="enderecoWrap" class="full">
+                  Endereço do imóvel / proprietário
+                  <input name="endereco" type="text" placeholder="Rua, número, bairro, cidade" />
+                </label>
+
+                <label id="documentoWrap" class="full">
+                  Observações / documento
+                  <textarea name="observacoes" placeholder="Informações adicionais, contrato, observações do cadastro..."></textarea>
+                </label>
+              </div>
+
+              <input type="hidden" name="role" value="morador" />
+
+              <button class="primary-button" type="submit">Salvar cadastro</button>
+              <a class="back-link" href="index.html">← Voltar para o painel</a>
+            </form>
+          </div>
+
+          <aside class="panel-card">
+            <h2 style="margin-top: 0;">O que este cadastro faz</h2>
+            <ul class="helper-list">
+              <li><span>1</span><div>Cria o acesso do usuário para entrar no sistema.</div></li>
+              <li><span>2</span><div>Associa o perfil ao tipo correto: morador ou proprietário.</div></li>
+              <li><span>3</span><div>Permite vincular condomínio, unidade e endereço.</div></li>
+              <li><span>4</span><div>Guarda dados básicos para boletos, contratos e avisos.</div></li>
+            </ul>
+
+            <div style="margin-top: 18px;">
+              <h3 style="margin-bottom: 8px;">Dica</h3>
+              <p class="field-note" style="font-size: 13px;">
+                Se o seu backend usa rotas diferentes, ajuste apenas as URLs no script:
+                <code>/api/auth/register</code> para usuário e <code>/api/proprietarios</code> para proprietário.
+              </p>
+            </div>
+          </aside>
         </div>
       </div>
     </section>
 
-    <script type="module" src="/static/cadastro.js"></script>
+    <script>
+      const toast = document.getElementById("toast");
+      const form = document.getElementById("cadastroForm");
+      const roleInput = form.elements.role;
+      const formTitle = document.getElementById("formTitle");
+      const formSubtitle = document.getElementById("formSubtitle");
+      const roleTag = document.getElementById("roleTag");
+      const btnMorador = document.getElementById("btnMorador");
+      const btnProprietario = document.getElementById("btnProprietario");
+      const enderecoWrap = document.getElementById("enderecoWrap");
+      const documentoWrap = document.getElementById("documentoWrap");
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2800);
+      }
+
+      function setRole(role) {
+        roleInput.value = role;
+        const isOwner = role === "proprietario";
+        btnMorador.classList.toggle("active", !isOwner);
+        btnProprietario.classList.toggle("active", isOwner);
+        roleTag.textContent = isOwner ? "Proprietário" : "Usuário";
+        formTitle.textContent = isOwner ? "Cadastrar proprietário" : "Cadastrar usuário";
+        formSubtitle.textContent = isOwner
+          ? "Informe os dados do proprietário e o vínculo com imóvel / condomínio."
+          : "Informe os dados de acesso e o vínculo do morador.";
+        enderecoWrap.classList.toggle("hide", !isOwner);
+        documentoWrap.classList.toggle("hide", !isOwner);
+      }
+
+      btnMorador.addEventListener("click", () => setRole("morador"));
+      btnProprietario.addEventListener("click", () => setRole("proprietario"));
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const data = Object.fromEntries(new FormData(form).entries());
+
+        if (data.senha !== data.confirmar_senha) {
+          showToast("As senhas não conferem.");
+          return;
+        }
+
+        delete data.confirmar_senha;
+
+        const endpoint = data.role === "proprietario"
+          ? "/api/proprietarios"
+          : "/api/auth/register";
+
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.detail || "Não foi possível salvar o cadastro.");
+          }
+
+          showToast("Cadastro realizado com sucesso.");
+          form.reset();
+          setRole("morador");
+        } catch (error) {
+          showToast(error.message);
+        }
+      });
+
+      setRole("morador");
+    </script>
   </body>
 </html>
-

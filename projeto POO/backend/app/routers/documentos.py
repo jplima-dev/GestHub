@@ -12,7 +12,6 @@ from backend.app import models, schemas
 from backend.app.core.audit import write_audit
 from backend.app.core.config import settings
 from backend.app.core.database import get_db
-from backend.app.core.property_access import ensure_property_access
 from backend.app.dependencies import ROLE_MORADOR, current_morador, get_current_user
 from backend.app.routers.common import apply_filters, apply_order, apply_search, get_or_404, page_response
 
@@ -36,7 +35,6 @@ def _document_query_for_user(db: Session, user: models.User):
 def list_documentos(
     search: str | None = None,
     categoria: str | None = None,
-    property_id: int | None = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     order_by: str = "criado_em",
@@ -45,9 +43,6 @@ def list_documentos(
     db: Session = Depends(get_db),
 ):
     query = _document_query_for_user(db, current_user)
-    if property_id is not None:
-        ensure_property_access(db, current_user, property_id)
-        query = query.filter(models.Documento.imovel_id == property_id)
     query = apply_search(query, models.Documento, search, ["titulo", "categoria", "file_path"])
     query = apply_filters(query, models.Documento, {"categoria": categoria})
     query = apply_order(query, models.Documento, order_by, order)
@@ -65,8 +60,6 @@ def upload_documento(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if imovel_id:
-        ensure_property_access(db, current_user, imovel_id)
     if current_user.role == ROLE_MORADOR:
         morador = current_morador(db, current_user)
         if contrato_id:

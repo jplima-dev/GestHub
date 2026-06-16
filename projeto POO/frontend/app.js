@@ -19,6 +19,29 @@ const state = {
 const statusOptions = ["", "ativo", "pendente", "pago", "vencido", "cancelado", "aberta", "em_andamento", "resolvida", "publicado", "rascunho", "arquivado", "disponivel", "alugado", "encerrado"];
 
 const modules = {
+  proprietarios: {
+  title: "Proprietários",
+  subtitle: "Cadastro e gerenciamento de proprietários.",
+  endpoint: "/api/proprietarios",
+  report: "proprietarios",
+  rolesCreate: ["proprietario"],
+
+  columns: [
+    ["id", "#"],
+    ["nome", "Nome"],
+    ["cpf_cnpj", "CPF/CNPJ"],
+    ["telefone", "Telefone"],
+    ["endereco", "Endereço"],
+  ],
+
+  fields: [
+    ["nome", "Nome", "text", true],
+    ["cpf_cnpj", "CPF/CNPJ", "text", true],
+    ["telefone", "Telefone", "text"],
+    ["endereco", "Endereço", "text"],
+    ["observacoes", "Observações", "textarea"],
+  ],
+},
   moradores: {
     title: "Moradores",
     subtitle: "Cadastro, perfil completo, busca, filtros e histórico.",
@@ -49,7 +72,7 @@ const modules = {
     title: "Avisos",
     subtitle: "Publicação, arquivamento, anexos e leitura.",
     endpoint: "/api/avisos",
-    rolesCreate: ["proprietario", "morador"],
+    rolesCreate: ["proprietario"],
     columns: [
       ["id", "#"],
       ["titulo", "Título"],
@@ -859,7 +882,7 @@ function debounce(callback, delay = 260) {
 }
 
 function applyTheme() {
-  const theme = localStorage.getItem("condoflow.theme") || "dark";
+  const theme = localStorage.getItem("condoflow.theme") || "light";
   document.documentElement.dataset.theme = theme;
 }
 
@@ -921,3 +944,5 @@ window.addEventListener("resize", debounce(() => {
 
 applyTheme();
 startApp();
+
+

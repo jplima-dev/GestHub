@@ -3,20 +3,10 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Generic, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 
 T = TypeVar("T")
-ROLE_INPUT_MAP = {
-    "admin": "proprietario",
-    "administrador": "proprietario",
-    "proprietario": "proprietario",
-    "proprietário": "proprietario",
-    "owner": "proprietario",
-    "viewer": "morador",
-    "morador": "morador",
-    "resident": "morador",
-}
 
 
 class ORMModel(BaseModel):
@@ -40,38 +30,13 @@ class UserBase(ORMModel):
     role: str = Field(pattern="^(proprietario|morador)$")
     ativo: bool = True
 
-    @field_validator("role", mode="before")
-    @classmethod
-    def normalize_role(cls, value: str) -> str:
-        return ROLE_INPUT_MAP.get(str(value).strip().lower(), str(value).strip().lower())
-
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
 
 
-class RegisterRequest(ORMModel):
-    nome: str = Field(min_length=2, max_length=140)
-    email: str = Field(min_length=5, max_length=255)
-    password: str = Field(min_length=8, max_length=128)
-    confirm_password: str = Field(min_length=8, max_length=128)
-    role: str = Field(pattern="^(proprietario|morador)$")
-
-    @field_validator("role", mode="before")
-    @classmethod
-    def normalize_role(cls, value: str) -> str:
-        return ROLE_INPUT_MAP.get(str(value).strip().lower(), str(value).strip().lower())
-
-    @model_validator(mode="after")
-    def passwords_match(self) -> "RegisterRequest":
-        if self.password != self.confirm_password:
-            raise ValueError("A confirmação de senha deve ser igual à senha.")
-        return self
-
-
 class UserRead(UserBase):
     id: int
-    avatar_path: str | None = None
     ultimo_login: datetime | None = None
     criado_em: datetime
 
@@ -80,17 +45,6 @@ class Token(ORMModel):
     access_token: str
     token_type: str = "bearer"
     user: UserRead
-
-
-class AccountUpdate(ORMModel):
-    nome: str | None = Field(default=None, min_length=2, max_length=140)
-    email: str | None = Field(default=None, min_length=5, max_length=255)
-    password: str | None = Field(default=None, min_length=8, max_length=128)
-
-
-class AccountRead(ORMModel):
-    user: UserRead
-    profile: dict | None = None
 
 
 class ProprietarioBase(ORMModel):
@@ -274,28 +228,6 @@ class ImovelRead(ImovelBase):
     atualizado_em: datetime
 
 
-class OnboardingPropertyCreate(ORMModel):
-    tipo: str = Field(default="apartamento", pattern="^(casa|apartamento|terreno|sala_comercial|loja|galpao)$")
-    titulo: str = Field(min_length=2, max_length=160)
-    endereco: str = Field(min_length=3, max_length=255)
-    cidade: str = Field(min_length=2, max_length=100)
-    estado: str = Field(min_length=2, max_length=2)
-    valor: float = Field(default=0, ge=0)
-    area_m2: float = Field(default=0, ge=0)
-    descricao: str | None = None
-
-
-class PropertyAccessRead(ORMModel):
-    id: int
-    titulo: str
-    tipo: str
-    endereco: str
-    cidade: str
-    estado: str
-    status: str
-    role: str = "viewer"
-
-
 class ContratoBase(ORMModel):
     imovel_id: int
     morador_id: int
@@ -394,7 +326,6 @@ class BoletoRead(BoletoBase):
 
 
 class AvisoBase(ORMModel):
-    imovel_id: int | None = None
     titulo: str = Field(min_length=2, max_length=180)
     mensagem: str = Field(min_length=3)
     categoria: str = "geral"

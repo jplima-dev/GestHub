@@ -44,7 +44,6 @@ uvicorn backend.app.main:app --reload
 Acesse:
 
 - Aplicação: http://127.0.0.1:8000
-- Cadastro: http://127.0.0.1:8000/cadastro
 - Swagger/OpenAPI: http://127.0.0.1:8000/docs
 - Health check: http://127.0.0.1:8000/health
 
@@ -85,7 +84,6 @@ Principais grupos de endpoints:
 
 ```text
 POST /api/auth/login
-POST /api/auth/register
 GET  /api/auth/me
 GET  /api/dashboard
 /api/moradores
@@ -111,3 +109,4 @@ O SQLite é criado em `backend/data/condoflow.db`. O script SQL está em `script
 ## Produção
 
 Antes de publicar, altere `JWT_SECRET_KEY`, restrinja `ALLOWED_ORIGINS`, use HTTPS, configure backup do SQLite ou migre para PostgreSQL, e proteja a pasta de uploads com política de retenção e antivírus.
+

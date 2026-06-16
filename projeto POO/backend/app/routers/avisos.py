@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from backend.app import models, schemas
 from backend.app.core.audit import write_audit
 from backend.app.core.database import get_db
-from backend.app.core.property_access import ensure_property_access
 from backend.app.core.security import now_utc
 from backend.app.dependencies import ROLE_MORADOR, ROLE_PROPRIETARIO, current_morador, get_current_user, require_roles
 from backend.app.routers.common import apply_filters, apply_order, apply_search, get_or_404, page_response, set_fields
@@ -38,7 +37,6 @@ def list_avisos(
     search: str | None = None,
     status_filter: str | None = Query(None, alias="status"),
     categoria: str | None = None,
-    property_id: int | None = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     order_by: str = "criado_em",
@@ -47,9 +45,6 @@ def list_avisos(
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Aviso)
-    if property_id is not None:
-        ensure_property_access(db, current_user, property_id)
-        query = query.filter(models.Aviso.imovel_id == property_id)
     if current_user.role == ROLE_MORADOR:
         query = query.filter(models.Aviso.status == "publicado")
     query = apply_search(query, models.Aviso, search, ["titulo", "mensagem", "categoria"])
@@ -64,14 +59,10 @@ def list_avisos(
 def create_aviso(
     payload: schemas.AvisoCreate,
     request: Request,
-    current_user: models.User = Depends(require_roles(ROLE_PROPRIETARIO, ROLE_MORADOR)),
+    current_user: models.User = Depends(require_roles(ROLE_PROPRIETARIO)),
     db: Session = Depends(get_db),
 ):
     data = payload.model_dump()
-    if data.get("imovel_id") is not None:
-        ensure_property_access(db, current_user, data["imovel_id"])
-    if current_user.role == ROLE_MORADOR:
-        data["status"] = "publicado"
     if data.get("status") == "publicado":
         data["publicado_em"] = now_utc()
     item = models.Aviso(autor_id=current_user.id, **data)
@@ -85,8 +76,6 @@ def create_aviso(
 @router.get("/{item_id}", response_model=schemas.AvisoRead)
 def get_aviso(item_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     item = get_or_404(db, models.Aviso, item_id)
-    if item.imovel_id is not None:
-        ensure_property_access(db, current_user, item.imovel_id)
     if current_user.role == ROLE_MORADOR and item.status != "publicado":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Aviso indisponível.")
     result = jsonable_encoder(item)
@@ -112,8 +101,6 @@ def update_aviso(
 ):
     item = get_or_404(db, models.Aviso, item_id)
     data = payload.model_dump(exclude_unset=True)
-    if data.get("imovel_id") is not None:
-        ensure_property_access(db, current_user, data["imovel_id"])
     if data.get("status") == "publicado" and item.status != "publicado":
         data["publicado_em"] = now_utc()
     set_fields(item, data)
@@ -183,3 +170,4 @@ def delete_aviso(
     db.commit()
     write_audit(db, current_user, "excluir", "avisos", item_id, request=request)
     return None
+
